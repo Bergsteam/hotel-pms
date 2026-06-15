@@ -26,7 +26,7 @@ const roleLabel = {
   chef:        'Повар',
 }
 
-export default function Sidebar() {
+export default function Sidebar({ onNavigate }) {
   const { hotel, profile, signOut } = useAuthStore()
 
   return (
@@ -53,6 +53,7 @@ export default function Sidebar() {
             key={to}
             to={to}
             end={to === '/'}
+            onClick={onNavigate}
             className={({ isActive }) =>
               `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
                 isActive
