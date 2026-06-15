@@ -39,7 +39,12 @@ export default function StaffTab({ staff, hotel, onReload }) {
                 {(s.full_name || '?')[0].toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <div className="font-semibold text-slate-800 truncate">{s.full_name}</div>
+                <div className="flex items-center gap-2">
+                  <div className="font-semibold text-slate-800 truncate">{s.full_name}</div>
+                  {s.active === false && (
+                    <span className="text-xs bg-red-100 text-red-500 px-1.5 py-0.5 rounded-full shrink-0">заблок.</span>
+                  )}
+                </div>
                 <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium mt-0.5 ${roleColor(s.role)}`}>
                   {roleLabel(s.role)}
                 </span>
@@ -135,8 +140,17 @@ function StaffModal({ staff, hotel, onClose, onSaved }) {
   }
 
   const handleDeactivate = async () => {
-    if (!confirm(`Деактивировать ${staff.full_name}?`)) return
-    await supabase.from('profiles').update({ active: false }).eq('id', staff.id)
+    if (!confirm(`Заблокировать ${staff.full_name}? Они не смогут войти в систему.`)) return
+    const { error } = await supabase.rpc('ban_staff_user', { target_user_id: staff.id })
+    if (error) { setError(error.message); return }
+    onSaved()
+    onClose()
+  }
+
+  const handleActivate = async () => {
+    if (!confirm(`Восстановить доступ для ${staff.full_name}?`)) return
+    const { error } = await supabase.rpc('unban_staff_user', { target_user_id: staff.id })
+    if (error) { setError(error.message); return }
     onSaved()
     onClose()
   }
@@ -226,11 +240,17 @@ function StaffModal({ staff, hotel, onClose, onSaved }) {
 
             <div className="flex gap-2 pt-1">
               {isEdit && (
-                <button type="button" onClick={handleDeactivate}
-                  className="px-3 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs transition-colors"
-                >
-                  Деактивировать
-                </button>
+                staff.active !== false
+                  ? <button type="button" onClick={handleDeactivate}
+                      className="px-3 py-2 border border-red-200 text-red-500 hover:bg-red-50 rounded-lg text-xs transition-colors"
+                    >
+                      🔒 Заблокировать
+                    </button>
+                  : <button type="button" onClick={handleActivate}
+                      className="px-3 py-2 border border-emerald-200 text-emerald-600 hover:bg-emerald-50 rounded-lg text-xs transition-colors"
+                    >
+                      ✓ Восстановить
+                    </button>
               )}
               <button type="button" onClick={onClose}
                 className="flex-1 border border-slate-200 text-slate-600 py-2 rounded-lg text-sm"
