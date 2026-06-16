@@ -53,14 +53,17 @@ function HotelTab({ hotel, onSaved }) {
   })
   const [saving, setSaving] = useState(false)
   const [saved, setSaved]   = useState(false)
+  const [error, setError]   = useState('')
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
-    await supabase.from('hotels').update(form).eq('id', hotel.id)
+    setError('')
+    const { error } = await supabase.from('hotels').update(form).eq('id', hotel.id)
     setSaving(false)
+    if (error) { setError(error.message); return }
     setSaved(true)
     onSaved()
     setTimeout(() => setSaved(false), 2000)
@@ -134,6 +137,8 @@ function HotelTab({ hotel, onSaved }) {
             </div>
           </div>
         </div>
+
+        {error && <div className="bg-red-50 text-red-600 text-sm px-3 py-2 rounded-lg">{error}</div>}
 
         <button type="submit" disabled={saving}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium px-5 py-2.5 rounded-lg text-sm transition-colors"
