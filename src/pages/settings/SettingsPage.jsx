@@ -61,7 +61,12 @@ function HotelTab({ hotel, onSaved }) {
     e.preventDefault()
     setSaving(true)
     setError('')
-    const { error } = await supabase.from('hotels').update(form).eq('id', hotel.id)
+    const payload = {
+      ...form,
+      season_start: form.season_start ? parseInt(form.season_start) : null,
+      season_end:   form.season_end   ? parseInt(form.season_end)   : null,
+    }
+    const { error } = await supabase.from('hotels').update(payload).eq('id', hotel.id)
     setSaving(false)
     if (error) { setError(error.message); return }
     setSaved(true)
